@@ -23,10 +23,12 @@ public class WhatsappController {
     WhatsappService whatsappService = new WhatsappService();
 
     @PostMapping("/add-user")
-    public String createUser(String name, String mobile) throws Exception {
+    public String createUser(String name,String mobile) throws Exception {
         //If the mobile number exists in database, throw "User already exists" exception
         //Otherwise, create the user and return "SUCCESS"
-
+//        if (whatsappService.createUser(name,mobile) == null){
+//            throw new Exception("User already exists");
+//        }
         return whatsappService.createUser(name, mobile);
     }
 
@@ -57,8 +59,13 @@ public class WhatsappController {
         //Throw "Group does not exist" if the mentioned group does not exist
         //Throw "You are not allowed to send message" if the sender is not a member of the group
         //If the message is sent successfully, return the final number of messages in that group.
-
-        return whatsappService.sendMessage(message, sender, group);
+        int response = whatsappService.sendMessage(message, sender, group);
+        if (response == -1){
+            throw new Exception("Group does not exist");
+        } else if (response == -2) {
+            throw new Exception("You are not allowed to send message");
+        }
+        return response;
     }
     @PutMapping("/change-admin")
     public String changeAdmin(User approver, User user, Group group) throws Exception{
@@ -66,8 +73,15 @@ public class WhatsappController {
         //Throw "Approver does not have rights" if the approver is not the current admin of the group
         //Throw "User is not a participant" if the user is not a part of the group
         //Change the admin of the group to "user" and return "SUCCESS". Note that at one time there is only one admin and the admin rights are transferred from approver to user.
-
-        return whatsappService.changeAdmin(approver, user, group);
+        String response = whatsappService.changeAdmin(approver, user, group);
+        if (response.equals("Group not exists")){
+            throw new Exception("Group does not exist");
+        } else if (response.equals("not an admin")) {
+            throw new Exception("Approver does not have rights");
+        } else if (response.equals("not a user")) {
+            throw new Exception("User is not a participant");
+        }
+        return response;
     }
 
     @DeleteMapping("/remove-user")
@@ -87,7 +101,9 @@ public class WhatsappController {
         //This is a bonus problem and does not contains any marks
         // Find the Kth latest message between start and end (excluding start and end)
         // If the number of messages between given time is less than K, throw "K is greater than the number of messages" exception
-
+        if (whatsappService.findMessage(start,end,K) == null){
+            throw new Exception("K is greater than the number of messages");
+        }
         return whatsappService.findMessage(start, end, K);
     }
 }
